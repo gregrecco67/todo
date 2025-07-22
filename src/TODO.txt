@@ -1,0 +1,6 @@
+-- TODO
+
+
+-- allow natural language input: "add get applesauce" "done 3" "remove 1"
+-- allow non-interactive addition: "todo get milk"
+-- make TUI?

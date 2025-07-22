@@ -1,4 +1,5 @@
 #include "App.h"
+#include <exception>
 
 namespace gwr::todo
 {
@@ -8,14 +9,11 @@ void App::setup()
     // anything we need? db cnxn?
     // for now, get some dummy entries
     // entries.push_back({"finish todo list"});
-    SQLite::Statement st{ dbm.db, "SELECT * from todos where 1;" };
+    SQLite::Statement st{dbm.db, "SELECT * from todos where 1;"};
     todos.clear();
     while (st.executeStep())
     {
-        Todo todo { .id = st.getColumn("id").getInt(),
-            .todo = st.getColumn("todo").getString(),
-            .done = (st.getColumn("done").getInt() == 1)
-        };
+        Todo todo{.id = st.getColumn("id").getInt(), .todo = st.getColumn("todo").getString(), .done = (st.getColumn("done").getInt() == 1)};
         todos.push_back(todo);
     }
 }
@@ -64,15 +62,12 @@ void App::run()
         break;
     }
     case Mode::Add:
-        std::cout << "In Mode::Add" << std::endl;
         promptForAdd();
         break;
     case Mode::Remove:
-        std::cout << "In Mode::Remove" << std::endl;
         promptForRemove();
         break;
     case Mode::Done:
-        std::cout << "In Mode::Done" << std::endl;
         promptForDone();
         break;
     }
@@ -82,7 +77,7 @@ void App::run()
 
 void App::promptForAdd()
 {
-    std::cout << "Add TODO: > ";
+    std::cout << "What needs done? ";
     std::string s;
     std::getline(std::cin, s);
     add(s);
@@ -90,12 +85,49 @@ void App::promptForAdd()
 }
 void App::promptForRemove()
 {
-    std::cout << "prompt for remove" << std::endl;
+    std::cout << divider << std::endl;
+    std::cout << "Remove which? ";
+    std::string s;
+    std::getline(std::cin, s);
+    int i{-1};
+    try
+    {
+        i = std::stoi(s);
+    }
+    catch (std::exception &e)
+    {
+        std::cout << "Exception thrown: " << e.what() << std::endl;
+    }
+    if (i != -1 && i <= todos.size())
+    {
+        std::cout << "removing todo.id " << todos[i].id << std::endl;
+        remove(todos[i - 1].id);
+    }
+    setup();
+    std::cout << divider << std::endl;
     mode = Mode::List;
 }
 void App::promptForDone()
 {
-    std::cout << "prompt for mark done" << std::endl;
+    std::cout << divider << std::endl;
+    std::cout << "Mark which done? ";
+    std::string s;
+    std::getline(std::cin, s);
+    int i{-1};
+    try
+    {
+        i = std::stoi(s);
+    }
+    catch (std::exception &e)
+    {
+        std::cout << "Exception thrown: " << e.what() << std::endl;
+    }
+    if (i != -1 && i <= todos.size())
+    {
+        markDone(i - 1, !todos[i - 1].done);
+    }
+    setup();
+    std::cout << divider << std::endl;
     mode = Mode::List;
 }
 
@@ -124,24 +156,48 @@ int App::promptForAction()
 
 void App::list()
 {
+    std::cout << std::endl;
+    std::cout << divider << std::endl;
     size_t i{0};
     for (auto &todo : todos)
     {
         ++i;
-        std::cout << todo.todo << std::endl;
+        std::string s;
+        if (todo.done)
+            s = "X] ";
+        else
+            s = " ] ";
+        std::cout << "[" << s << i << ". " << todo.todo << std::endl;
     }
+    std::cout << divider << std::endl;
 }
 
-void App::add(std::string &content) { 
-    SQLite::Statement st{ dbm.db, "insert into todos (todo) VALUES '?';" };
-    st.bind(1, content);
-    SQLite::Statement st2{ dbm.db, "SELECT MAX(id) from todos;" };
-    st2.executeStep();
-    int maxId = st2.getColumn("id").getInt();
-    todos.push_back(Todo{ .id = maxId, .todo = content, .done = false}); 
+void App::remove(int id)
+{
+    SQLite::Statement st{dbm.db, "delete from todos where id = (?);"};
+    st.bind(1, id);
+    st.executeStep();
 }
-        
-        
-        
+void App::add(std::string &content)
+{
+    SQLite::Statement st{dbm.db, "insert into todos (todo) VALUES (?);"};
+    st.bind(1, content);
+    st.executeStep();
+    SQLite::Statement st2{dbm.db, "SELECT MAX(id) from todos;"};
+    st2.executeStep();
+    int maxId = st2.getColumn(0).getInt();
+    std::cout << "adding todo with .id " << maxId << std::endl;
+    todos.push_back(Todo{.id = maxId, .todo = content, .done = false});
+}
+
+void App::markDone(int id, bool done)
+{
+    std::cout << "got id = " << id << " and done = " << done << std::endl;
+    SQLite::Statement st{dbm.db, "update todos set done = ? where id = ?;"};
+    int dbDone = done ? 1 : 0;
+    st.bind(1, dbDone);
+    st.bind(2, todos[id].id);
+    st.executeStep();
+}
 
 } // namespace gwr::todo

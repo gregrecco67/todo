@@ -22,12 +22,12 @@ enum class Mode
     Done
 };
 
-typedef struct Todo {
+typedef struct Todo
+{
     int id;
     std::string todo;
     bool done;
-};
-
+} Todo;
 
 class App
 {
@@ -38,12 +38,14 @@ class App
     void run();
     void list();
     void add(std::string &content);
+    void remove(int id);
+    void markDone(int id, bool done);
     std::vector<Todo> todos;
     int promptForAction();
     void promptForAdd();
     void promptForRemove();
     void promptForDone();
-
+    std::string divider{"----- ----- ----- ----- ----- ----- ----- ----- ----- -----"};
 // connection / status
 #ifdef IS_LINUX
     DbManager dbm{"/home/grecco/.config/todo/app.sqlite3"};
