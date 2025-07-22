@@ -19,11 +19,13 @@ set(PROJECT_NAME "todo")
 project(${PROJECT_NAME} VERSION 0.1.0 LANGUAGES CXX)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+add_subdirectory(libs/SQLiteCpp)
 
 ####################################
 add_executable(${PROJECT_NAME} 
-  src/App.cpp
-  src/main.cpp
+    src/DbManager.cpp
+    src/App.cpp
+    src/main.cpp
 )
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 20)
@@ -37,6 +39,11 @@ endif()
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     target_compile_definitions(${PROJECT_NAME} PUBLIC "IS_WINDOWS")
 endif()
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    SQLiteCpp
+    sqlite3
+)
 
 include_directories(PUBLIC src)
 

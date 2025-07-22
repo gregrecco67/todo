@@ -1,10 +1,25 @@
 #include "App.h"
 
-void App::setup() {
+namespace gwr::todo
+{
+
+void App::setup()
+{
     // anything we need? db cnxn?
     // for now, get some dummy entries
-    entries.push_back({"finish todo list"});
+    // entries.push_back({"finish todo list"});
+    SQLite::Statement st{ dbm.db, "SELECT * from todos where 1;" };
+    todos.clear();
+    while (st.executeStep())
+    {
+        Todo todo { .id = st.getColumn("id").getInt(),
+            .todo = st.getColumn("todo").getString(),
+            .done = (st.getColumn("done").getInt() == 1)
+        };
+        todos.push_back(todo);
+    }
 }
+
 // no args -> list(), 1 arg ('list') -> list(), else -> add(s)
 // List: list(), prompt: "1. Add, 2. Remove, 3. Toggle Done: ?"
 // Add: prompt: "Todo text: ?" -> add(s) --> list()
@@ -15,29 +30,36 @@ void App::setup() {
 //          if num OK: mark done [mark(bool)] -> Mode::List
 //          if not OK: prompt "No todo with that number: ?"
 
-
-void App::run() {
-    switch(mode) {
-    case Mode::List: {
+void App::run()
+{
+    switch (mode)
+    {
+    case Mode::List:
+    {
         list();
-        auto choice = promptForAction();       
-        switch (choice) {
-            case 1: {
-                mode = Mode::Add;
-                break;
-            }
-            case 2: {
-                mode = Mode::Remove;
-                break;
-            }
-            case 3: {
-                mode = Mode::Done;
-                break;
-            }
-            case 4: {
-                exit(0);
-                break;
-            }
+        auto choice = promptForAction();
+        switch (choice)
+        {
+        case 1:
+        {
+            mode = Mode::Add;
+            break;
+        }
+        case 2:
+        {
+            mode = Mode::Remove;
+            break;
+        }
+        case 3:
+        {
+            mode = Mode::Done;
+            break;
+        }
+        case 4:
+        {
+            exit(0);
+            break;
+        }
         }
         break;
     }
@@ -58,27 +80,29 @@ void App::run() {
     run();
 }
 
-void App::promptForAdd() {
+void App::promptForAdd()
+{
     std::cout << "Add TODO: > ";
     std::string s;
     std::getline(std::cin, s);
     add(s);
     mode = Mode::List;
 }
-void App::promptForRemove() {
+void App::promptForRemove()
+{
     std::cout << "prompt for remove" << std::endl;
     mode = Mode::List;
-
 }
-void App::promptForDone() {
+void App::promptForDone()
+{
     std::cout << "prompt for mark done" << std::endl;
     mode = Mode::List;
 }
 
-
-int App::promptForAction() {
+int App::promptForAction()
+{
     std::cout << "1. Add, 2. Remove, 3. Toggle Done, 4. Exit > ";
-        
+
     std::string s;
     std::getline(std::cin, s);
     int i;
@@ -86,11 +110,11 @@ int App::promptForAction() {
     {
         i = std::stoi(s);
     }
-    catch (std::invalid_argument const& ex)
+    catch (std::invalid_argument const &ex)
     {
         std::cout << "std::invalid_argument::what(): " << ex.what() << '\n';
     }
-    catch (std::out_of_range const& ex)
+    catch (std::out_of_range const &ex)
     {
         std::cout << "std::out_of_range::what(): " << ex.what() << '\n';
     }
@@ -98,15 +122,26 @@ int App::promptForAction() {
     return i;
 }
 
-void App::list() {
+void App::list()
+{
     size_t i{0};
-    for (auto entry : entries ) {
+    for (auto &todo : todos)
+    {
         ++i;
-        std::cout << i << ".\t" << entry.body << std::endl;
+        std::cout << todo.todo << std::endl;
     }
 }
 
-void App::add(std::string &content)
-{
-    entries.push_back({content});
+void App::add(std::string &content) { 
+    SQLite::Statement st{ dbm.db, "insert into todos (todo) VALUES '?';" };
+    st.bind(1, content);
+    SQLite::Statement st2{ dbm.db, "SELECT MAX(id) from todos;" };
+    st2.executeStep();
+    int maxId = st2.getColumn("id").getInt();
+    todos.push_back(Todo{ .id = maxId, .todo = content, .done = false}); 
 }
+        
+        
+        
+
+} // namespace gwr::todo

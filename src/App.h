@@ -3,29 +3,54 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <DbManager.h>
+#include <SQLiteCpp/SQLiteCpp.h>
 
-typedef struct Entry {
+namespace gwr::todo
+{
+
+typedef struct Entry
+{
     std::string body;
 } Entry;
 
-enum class Mode {
-    List, Add, Remove, Done
+enum class Mode
+{
+    List,
+    Add,
+    Remove,
+    Done
+};
+
+typedef struct Todo {
+    int id;
+    std::string todo;
+    bool done;
 };
 
 
-class App {
-public:
+class App
+{
+  public:
     App() = default;
     Mode mode;
     void setup();
     void run();
     void list();
     void add(std::string &content);
-    std::vector<Entry> entries;
+    std::vector<Todo> todos;
     int promptForAction();
     void promptForAdd();
     void promptForRemove();
     void promptForDone();
+
+// connection / status
+#ifdef IS_LINUX
+    DbManager dbm{"/home/grecco/.config/todo/app.sqlite3"};
+#endif
+#ifdef IS_MACOS
+    DbManager dbm{"/Users/grecco/Library/Application Support/todo/app.sqlite3"};
+#endif
 };
 
-
+} // namespace gwr::todo
