@@ -186,7 +186,6 @@ void App::add(std::string &content)
     SQLite::Statement st2{dbm.db, "SELECT MAX(id) from todos;"};
     st2.executeStep();
     int maxId = st2.getColumn(0).getInt();
-    std::cout << "adding todo with .id " << maxId << std::endl;
     todos.push_back(Todo{.id = maxId, .todo = content, .done = false});
 }
 
