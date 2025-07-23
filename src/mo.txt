@@ -1,0 +1,10 @@
+TODO: for terminal action
+
+-- figure out phases
+
+-- clear, hide cursor
+-- show todos
+-- prompt for action: list options, take input
+-- showing cursor and echoing input as we weren't
+
+-- add a mode for editing
