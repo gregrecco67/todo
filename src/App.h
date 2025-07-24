@@ -19,7 +19,7 @@ enum class Mode
     List,
     Add,
     Remove,
-    Done
+    Mark
 };
 
 typedef struct Todo
@@ -44,7 +44,8 @@ class App
     int promptForAction();
     void promptForAdd();
     void promptForRemove();
-    void promptForDone();
+    void promptForMark();
+    void clear_screen();
     std::string divider{"----- ----- ----- ----- ----- ----- ----- ----- ----- -----"};
 // connection / status
 #ifdef IS_LINUX

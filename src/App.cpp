@@ -6,9 +6,7 @@ namespace gwr::todo
 
 void App::setup()
 {
-    // anything we need? db cnxn?
     // for now, get some dummy entries
-    // entries.push_back({"finish todo list"});
     SQLite::Statement st{dbm.db, "SELECT * from todos where 1;"};
     todos.clear();
     while (st.executeStep())
@@ -17,16 +15,6 @@ void App::setup()
         todos.push_back(todo);
     }
 }
-
-// no args -> list(), 1 arg ('list') -> list(), else -> add(s)
-// List: list(), prompt: "1. Add, 2. Remove, 3. Toggle Done: ?"
-// Add: prompt: "Todo text: ?" -> add(s) --> list()
-// Remove: prompt "Remove which: ?" -> validate number
-//          if num OK: remove, -> Mode::List
-//          if not OK: prompt "No todo with that number: ?" --> (don't change mode)
-// Done: prompt "Mark which done: ?" -> validate num
-//          if num OK: mark done [mark(bool)] -> Mode::List
-//          if not OK: prompt "No todo with that number: ?"
 
 void App::run()
 {
@@ -50,7 +38,7 @@ void App::run()
         }
         case 3:
         {
-            mode = Mode::Done;
+            mode = Mode::Mark;
             break;
         }
         case 4:
@@ -67,8 +55,8 @@ void App::run()
     case Mode::Remove:
         promptForRemove();
         break;
-    case Mode::Done:
-        promptForDone();
+    case Mode::Mark:
+        promptForMark();
         break;
     }
 
@@ -85,7 +73,6 @@ void App::promptForAdd()
 }
 void App::promptForRemove()
 {
-    std::cout << divider << std::endl;
     std::cout << "Remove which? ";
     std::string s;
     std::getline(std::cin, s);
@@ -100,17 +87,15 @@ void App::promptForRemove()
     }
     if (i != -1 && i <= todos.size())
     {
-        std::cout << "removing todo.id " << todos[i].id << std::endl;
         remove(todos[i - 1].id);
     }
     setup();
     std::cout << divider << std::endl;
     mode = Mode::List;
 }
-void App::promptForDone()
+void App::promptForMark()
 {
-    std::cout << divider << std::endl;
-    std::cout << "Mark which done? ";
+    std::cout << "Mark which done/undone? ";
     std::string s;
     std::getline(std::cin, s);
     int i{-1};
@@ -133,10 +118,27 @@ void App::promptForDone()
 
 int App::promptForAction()
 {
-    std::cout << "1. Add, 2. Remove, 3. Toggle Done, 4. Exit > ";
+    std::cout << "\033[1m\033[4mA\033[22m\033[24mdd, \033[1m\033[4mR\033[22m\033[24memove,  \033[1m\033[4mM\033[22m\033[24mark, "
+                 "e\033[1m\033[4mX\033[22m\033[24mit > ";
 
     std::string s;
     std::getline(std::cin, s);
+    if (s == "a" || s == "A")
+    {
+        return 1;
+    }
+    if (s == "r" || s == "R")
+    {
+        return 2;
+    }
+    if (s == "m" || s == "M")
+    {
+        return 3;
+    }
+    if (s == "x" || s == "X")
+    {
+        return 4;
+    }
     int i;
     try
     {
@@ -150,13 +152,14 @@ int App::promptForAction()
     {
         std::cout << "std::out_of_range::what(): " << ex.what() << '\n';
     }
-
     return i;
 }
 
+void App::clear_screen() { std::cout << "\033[2J\033[H" << std::endl; }
+
 void App::list()
 {
-    std::cout << std::endl;
+    clear_screen();
     std::cout << divider << std::endl;
     size_t i{0};
     for (auto &todo : todos)
