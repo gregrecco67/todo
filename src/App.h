@@ -46,6 +46,8 @@ class App
     void promptForRemove();
     void promptForMark();
     void clear_screen();
+    int intFromString(std::string &s);
+    int intFromCmd(std::string &c);
     std::string divider{"----- ----- ----- ----- ----- ----- ----- ----- ----- -----"};
 // connection / status
 #ifdef IS_LINUX

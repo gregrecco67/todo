@@ -4,6 +4,35 @@
 namespace gwr::todo
 {
 
+int App::intFromCmd(std::string &s) {
+    if (s == "a" || s == "A" || s == "add")
+        return 1;
+    if (s == "r" || s == "R" || s == "drop")
+        return 2;
+    if (s == "m" || s == "M" || s == "mark")
+        return 3;
+    if (s == "x" || s == "X" || s == "exit")
+        return 4;
+    return -1; // fallthrough?
+}
+
+int App::intFromString(std::string &s) {
+    int i;
+    try
+    {
+        i = std::stoi(s);
+    }
+    catch (std::invalid_argument const &ex)
+    {
+        std::cout << "std::invalid_argument::what(): " << ex.what() << '\n';
+    }
+    catch (std::out_of_range const &ex)
+    {
+        std::cout << "std::out_of_range::what(): " << ex.what() << '\n';
+    }
+    return i;
+}
+
 void App::setup()
 {
     // for now, get some dummy entries
@@ -44,6 +73,11 @@ void App::run()
         case 4:
         {
             exit(0);
+            break;
+        }
+        default:
+        {
+            mode = Mode::List;
             break;
         }
         }
@@ -123,36 +157,45 @@ int App::promptForAction()
 
     std::string s;
     std::getline(std::cin, s);
-    if (s == "a" || s == "A")
+    if (s.length() == 1)
+        return intFromString(s);
+    // "remove" and "mark" can come with a number
+    if (s.length() > 1)
     {
-        return 1;
+        std::string a = s;
+        a.erase(std::remove_if(a.begin(), a.end(), [](unsigned char c) { return !std::isalpha(c); }));
+        // if we got "r3" or "r 3", 'a' = "r" and 's' = "3"
+        s.erase(std::remove_if(s.begin(), s.end(), [](unsigned char x) { return !std::isdigit(x); }));
+        int cmd = intFromCmd(a);
+        int obj = intFromString(s);
+        switch (cmd) {
+        case -1:
+            return -1;
+        case 1: {
+            add(s);
+            return 0;
+        }
+        case 2: {
+            remove(obj);
+            return 0;
+        }
+        case 3: {
+            if (obj != -1 && obj <= todos.size()) {
+                markDone(obj - 1, !todos[obj - 1].done);
+            }
+            return 0;
+        }
+        case 4: {
+                return 4;
+        }
+        default: {
+            return 0;
+        }
+        }
+        
     }
-    if (s == "r" || s == "R")
-    {
-        return 2;
-    }
-    if (s == "m" || s == "M")
-    {
-        return 3;
-    }
-    if (s == "x" || s == "X")
-    {
-        return 4;
-    }
-    int i;
-    try
-    {
-        i = std::stoi(s);
-    }
-    catch (std::invalid_argument const &ex)
-    {
-        std::cout << "std::invalid_argument::what(): " << ex.what() << '\n';
-    }
-    catch (std::out_of_range const &ex)
-    {
-        std::cout << "std::out_of_range::what(): " << ex.what() << '\n';
-    }
-    return i;
+
+    return -1; 
 }
 
 void App::clear_screen() { std::cout << "\033[2J\033[H" << std::endl; }

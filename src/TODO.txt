@@ -10,4 +10,10 @@ clear_screen()
 -- \x1B[?25l // cursor invisible
 -- \x1B[H    // cursor move (0, 0)
 
+change REPL:
+-- allow remove and mark to come with a number
+-- e.g.: "A_dd, R_emove, M_ark... ? r3" = remove the todo number [3-1] in the list
 
+
+borked parsing:
+-- got too fancy, trying to allow compound commands
