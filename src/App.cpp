@@ -25,6 +25,7 @@ int App::intFromString(std::string &s) {
     catch (std::invalid_argument const &ex)
     {
         std::cout << "std::invalid_argument::what(): " << ex.what() << '\n';
+        std::cout << "got input: " << s << std::endl;
     }
     catch (std::out_of_range const &ex)
     {
@@ -117,7 +118,7 @@ void App::promptForRemove()
     }
     catch (std::exception &e)
     {
-        std::cout << "Exception thrown: " << e.what() << std::endl;
+        std::cout << "120: Exception thrown: " << e.what() << std::endl;
     }
     if (i != -1 && i <= todos.size())
     {
@@ -139,7 +140,7 @@ void App::promptForMark()
     }
     catch (std::exception &e)
     {
-        std::cout << "Exception thrown: " << e.what() << std::endl;
+        std::cout << "142 Exception thrown: " << e.what() << std::endl;
     }
     if (i != -1 && i <= todos.size())
     {
@@ -158,21 +159,23 @@ int App::promptForAction()
     std::string s;
     std::getline(std::cin, s);
     if (s.length() == 1)
-        return intFromString(s);
+        return intFromCmd(s);
     // "remove" and "mark" can come with a number
     if (s.length() > 1)
     {
         std::string a = s;
+        std::string c = s;
         a.erase(std::remove_if(a.begin(), a.end(), [](unsigned char c) { return !std::isalpha(c); }));
         // if we got "r3" or "r 3", 'a' = "r" and 's' = "3"
         s.erase(std::remove_if(s.begin(), s.end(), [](unsigned char x) { return !std::isdigit(x); }));
         int cmd = intFromCmd(a);
         int obj = intFromString(s);
+        if (cmd == -1) { return -1; }
         switch (cmd) {
         case -1:
             return -1;
         case 1: {
-            add(s);
+            add(c);
             return 0;
         }
         case 2: {

@@ -17,3 +17,5 @@ change REPL:
 
 borked parsing:
 -- got too fancy, trying to allow compound commands
+-- halfway fixed
+-- still have to distinguish: trailing input is number or todo content!
