@@ -5,6 +5,7 @@
 #include <vector>
 #include <DbManager.h>
 #include <SQLiteCpp/SQLiteCpp.h>
+#include <algorithm>
 
 namespace gwr::todo
 {
